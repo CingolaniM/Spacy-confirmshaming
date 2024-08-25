@@ -9,4 +9,7 @@
 [Ss]cripts
 pyvenv.cfg
 .env
+__pycache__
+*.py[cod]
+*$py.class
 pip-selfcheck.json
