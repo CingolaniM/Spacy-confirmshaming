@@ -1,3 +1,4 @@
+import json
 import spacy
 from spacy.matcher import Matcher  
 
@@ -17,10 +18,17 @@ matcher = Matcher(nlp.vocab)
 pattern = [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}]
 matcher.add("first_person", [pattern])
 
+# Hardcoded examples
+file = open("examples_es.json", "r")
+examples_str = file.read()
+file.close()
+examples_list = json.loads(examples_str)
+
 @app.post("/")
 def hello_world():
     sentences = []
     tokens = request.get_json().get('tokens')
+    tokens.extend(examples_list)
     for token in tokens:
         sentences.extend(check_text(token))
     return sentences
