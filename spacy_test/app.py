@@ -18,8 +18,11 @@ nlp = spacy.load("es_dep_news_trf")
 
 # First person verb matcher
 first_person_matcher = Matcher(nlp.vocab)
-first_person_verb_pattern = [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}]
-first_person_matcher.add("first_person", [first_person_verb_pattern])
+first_person_verb_pattern = [
+        [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}],
+        [{"DEP": "iobj", "POS": "PRON", "MORPH": {"IS_SUPERSET": ["Person=1"]}}, {"POS": "VERB"}],
+]
+first_person_matcher.add("first_person", first_person_verb_pattern)
 
 # "No, thanks" matcher
 negation_matcher = Matcher(nlp.vocab)
@@ -44,10 +47,6 @@ def hello_world():
 
 def check_text(text):
     doc = nlp(text)
-    """
-    for token in doc:
-        print(token.text, token.dep_, token.morph)
-    """
     # Match first person verbs
     first_person_matches = first_person_matcher(doc, as_spans=True)
 
