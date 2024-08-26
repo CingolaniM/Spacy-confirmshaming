@@ -8,15 +8,23 @@ from flask_cors import CORS
 
 from datetime import datetime
 
+
+
 app = Flask(__name__)
 CORS(app)
 
 #nlp = spacy.load("es_core_news_sm")
 nlp = spacy.load("es_dep_news_trf")
+
 # First person verb matcher
-matcher = Matcher(nlp.vocab)
-pattern = [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}]
-matcher.add("first_person", [pattern])
+first_person_matcher = Matcher(nlp.vocab)
+first_person_verb_pattern = [{"POS": "VERB", "MORPH": {"IS_SUPERSET": ["Person=1"]}}]
+first_person_matcher.add("first_person", [first_person_verb_pattern])
+
+# "No, thanks" matcher
+negation_matcher = Matcher(nlp.vocab)
+negation_pattern = [{"LOWER": "no"}]
+negation_matcher.add("negation", [negation_pattern])
 
 # Hardcoded examples
 file = open("examples_es.json", "r")
@@ -36,10 +44,18 @@ def hello_world():
 
 def check_text(text):
     doc = nlp(text)
-    matches = matcher(doc, as_spans=True)
+    """
+    for token in doc:
+        print(token.text, token.dep_, token.morph)
+    """
+    # Match first person verbs
+    first_person_matches = first_person_matcher(doc, as_spans=True)
 
     sentences = []
-    for span in matches:
-        sentences.append(span.sent.text)
+    for span in first_person_matches:
         print(span.sent.text, span.text, span.label_)
+        negation_matches = negation_matcher(span.sent, as_spans=True)
+        # Si hay muchos "no" en la oración, me quedo con el primero
+        if negation_matches:
+            sentences.append(negation_matches[0].sent.text)
     return sentences
